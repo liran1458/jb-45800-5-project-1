@@ -1,14 +1,13 @@
 const data = [];
+
+// Elements (safe)
 const thead = document.getElementById("table-head");
 const tbody = document.getElementById("table-body");
 
-// Inputs (global)
 const categoryInput = document.getElementById('category');
 const descriptionInput = document.getElementById('description');
 const amountInput = document.getElementById('amount');
 const dateInput = document.getElementById('date');
-
-let editIndex = null;
 
 // Unique ID generator
 const generateId = () => Date.now().toString() + Math.floor(Math.random() * 10000);
@@ -17,7 +16,7 @@ const generateId = () => Date.now().toString() + Math.floor(Math.random() * 1000
 const loadHeader = () => `
     <h1>Expense Manager</h1>
     <hr>
-`;
+    `;
 
 // Navigation
 const getNavLinks = () => `
@@ -25,7 +24,15 @@ const getNavLinks = () => `
     <a href="filters.html">filters</a>
     <a href="graphs.html">graphs</a>
     <a href="about.html">about</a>
-`;
+    `;
+
+// UI INJECTION
+
+const nav = document.getElementById("nav");
+if (nav) nav.innerHTML = getNavLinks();
+
+const header = document.getElementById("myHeader");
+if (header) header.innerHTML = loadHeader();
 
 // Validation
 const isDescriptionValid = (category, description) =>
@@ -42,7 +49,8 @@ const loadFromLocalStorage = () => {
     if (saved) {
         data.push(...JSON.parse(saved));
     }
-    renderTable();
+
+    if (thead && tbody) renderTable();
 };
 
 // Save to LocalStorage
@@ -50,9 +58,8 @@ const saveToLocalStorage = () =>
     localStorage.setItem('data', JSON.stringify(data));
 
 
-// ----------------------
 // DELETE
-// ----------------------
+
 const deleteItem = id => {
     if (!confirm(`Are you sure you want to delete item ID: ${id}?`)) return;
 
@@ -61,54 +68,50 @@ const deleteItem = id => {
 
     data.splice(index, 1);
     saveToLocalStorage();
-    renderTable();
+
+    if (thead && tbody) renderTable();
 };
 
 
-// ----------------------
-// EDIT
-// ----------------------
-const editItem = id => {
-    if (!confirm(`Are you sure you want to edit item ID: ${id}?`)) return;
+// ADD ITEM (getUserInputs)
 
-    const index = data.findIndex(item => item.id === id);
-    if (index === -1) return;
+function getUserInputs(event) {
+    event.preventDefault();
 
-    const item = data[index];
+    const form = document.getElementById("myForm");
+    if (!form) return;
 
-    categoryInput.value = item.category;
-    descriptionInput.value = item.description;
-    amountInput.value = item.amount;
-    dateInput.value = item.date;
+    if (!categoryInput || !descriptionInput || !amountInput || !dateInput) return;
 
-    editIndex = index;
-};
+    if (!isDescriptionValid(categoryInput.value, descriptionInput.value.trim())) {
+        alert("Please enter a description for the 'Other' expense.");
+        return;
+    }
 
+    if (!isDateValid(dateInput.value)) {
+        alert("Do not enter a future date");
+        return;
+    }
 
-// ----------------------
-// UPDATE (SAVE EDIT)
-// ----------------------
-const updateItem = () => {
-    data[editIndex] = {
-        ...data[editIndex], // keep ID
+    data.push({
+        id: generateId(),
         date: dateInput.value,
         description: descriptionInput.value.trim(),
         amount: +amountInput.value,
         category: categoryInput.value
-    };
+    });
 
     saveToLocalStorage();
-    renderTable();
 
-    document.getElementById("myForm").reset();
-    editIndex = null;
-};
+    if (thead && tbody) renderTable();
 
+    form.reset();
+}
 
-// ----------------------
 // TABLE RENDER FUNCTIONS
-// ----------------------
+
 const renderTableHeader = () => {
+    if (!thead) return;
     if (thead.innerHTML.trim() !== "") return;
 
     thead.innerHTML = `
@@ -118,25 +121,27 @@ const renderTableHeader = () => {
             <th>Amount</th>
             <th>Category</th>
             <th></th>
-            <th></th>
         </tr>
     `;
 };
 
 const renderTableRows = () => {
+    if (!tbody) return;
+
     tbody.innerHTML = data.map(item => `
         <tr>
             <td>${item.date}</td>
             <td>${item.description}</td>
             <td>${item.amount}</td>
             <td>${item.category}</td>
-            <td><button onclick="editItem('${item.id}')">Edit</button></td>
             <td><button onclick="deleteItem('${item.id}')">Delete</button></td>
         </tr>
     `).join("");
 };
 
 const renderTable = () => {
+    if (!thead || !tbody) return;
+
     if (data.length === 0) {
         thead.innerHTML = "";
         tbody.innerHTML = "";
@@ -148,54 +153,6 @@ const renderTable = () => {
 };
 
 
-// ----------------------
-// FORM HANDLING
-// ----------------------
-document.getElementById("myForm").addEventListener("submit", event => {
-    event.preventDefault();
-
-    if (editIndex === null) {
-        // Add new item
-        if (!isDescriptionValid(categoryInput.value, descriptionInput.value.trim())) {
-            alert("Please enter a description for the 'Other' expense.");
-            return;
-        }
-
-        if (!isDateValid(dateInput.value)) {
-            alert("Do not enter a future date");
-            return;
-        }
-
-        data.push({
-            id: generateId(),
-            date: dateInput.value,
-            description: descriptionInput.value.trim(),
-            amount: +amountInput.value,
-            category: categoryInput.value
-        });
-
-        saveToLocalStorage();
-        renderTable();
-        document.getElementById("myForm").reset();
-    } else {
-        // Update existing item
-        updateItem();
-    }
-});
 
 
-// ----------------------
-// UI INJECTION (exactly like you wanted)
-// ----------------------
-const nav = document.getElementById("nav");
-nav.innerHTML = getNavLinks();
-
-const header = document.getElementById("myHeader");
-header.innerHTML = loadHeader();
-
-
-
-// ----------------------
-// INITIAL LOAD
-// ----------------------
 loadFromLocalStorage();
