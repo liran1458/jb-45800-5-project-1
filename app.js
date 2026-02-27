@@ -9,6 +9,8 @@ const descriptionInput = document.getElementById('description');
 const amountInput = document.getElementById('amount');
 const dateInput = document.getElementById('date');
 
+let editIndex = null;
+
 // Unique ID generator
 const generateId = () => Date.now().toString() + Math.floor(Math.random() * 10000);
 
@@ -16,7 +18,7 @@ const generateId = () => Date.now().toString() + Math.floor(Math.random() * 1000
 const loadHeader = () => `
     <h1>Expense Manager</h1>
     <hr>
-    `;
+`;
 
 // Navigation
 const getNavLinks = () => `
@@ -24,10 +26,9 @@ const getNavLinks = () => `
     <a href="filters.html">filters</a>
     <a href="graphs.html">graphs</a>
     <a href="about.html">about</a>
-    `;
+`;
 
 // UI INJECTION
-
 const nav = document.getElementById("nav");
 if (nav) nav.innerHTML = getNavLinks();
 
@@ -47,7 +48,15 @@ const isDateValid = dateStr => {
 const loadFromLocalStorage = () => {
     const saved = localStorage.getItem('data');
     if (saved) {
-        data.push(...JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+
+        // הוספת ID לפריטים ישנים
+        parsed.forEach(item => {
+            if (!item.id) item.id = generateId();
+        });
+
+        data.push(...parsed);
+        saveToLocalStorage();
     }
 
     if (thead && tbody) renderTable();
@@ -59,7 +68,6 @@ const saveToLocalStorage = () =>
 
 
 // DELETE
-
 const deleteItem = id => {
     if (!confirm(`Are you sure you want to delete item ID: ${id}?`)) return;
 
@@ -73,8 +81,27 @@ const deleteItem = id => {
 };
 
 
-// ADD ITEM (getUserInputs)
+// EDIT
+function editItem(id) {
+    if (!confirm(`Are you sure you want to edit item ID: ${id}?`)) return;
 
+    const index = data.findIndex(item => item.id === id);
+    if (index === -1) return;
+
+    const item = data[index];
+
+    if (!categoryInput || !descriptionInput || !amountInput || !dateInput) return;
+
+    categoryInput.value = item.category;
+    descriptionInput.value = item.description;
+    amountInput.value = item.amount;
+    dateInput.value = item.date;
+
+    editIndex = index;
+}
+
+
+// ADD / UPDATE
 function getUserInputs(event) {
     event.preventDefault();
 
@@ -93,23 +120,42 @@ function getUserInputs(event) {
         return;
     }
 
-    data.push({
-        id: generateId(),
-        date: dateInput.value,
-        description: descriptionInput.value.trim(),
-        amount: +amountInput.value,
-        category: categoryInput.value
-    });
+    // UPDATE
+    if (editIndex !== null) {
+        if (!confirm("Are you sure you want to update this item?")) return;
+
+        data[editIndex] = {
+            ...data[editIndex],
+            date: dateInput.value,
+            description: descriptionInput.value.trim(),
+            amount: +amountInput.value,
+            category: categoryInput.value
+        };
+
+        editIndex = null;
+    }
+
+    // ADD
+    else {
+        data.push({
+            id: generateId(),
+            date: dateInput.value,
+            description: descriptionInput.value.trim(),
+            amount: +amountInput.value,
+            category: categoryInput.value
+        });
+    }
 
     saveToLocalStorage();
 
     if (thead && tbody) renderTable();
 
     form.reset();
+    categoryInput.focus();
 }
 
-// TABLE RENDER FUNCTIONS
 
+// TABLE RENDER FUNCTIONS
 const renderTableHeader = () => {
     if (!thead) return;
     if (thead.innerHTML.trim() !== "") return;
@@ -120,7 +166,8 @@ const renderTableHeader = () => {
             <th>Description</th>
             <th>Amount</th>
             <th>Category</th>
-            <th></th>
+            <th>Edit</th>
+            <th>Delete</th>
         </tr>
     `;
 };
@@ -134,6 +181,7 @@ const renderTableRows = () => {
             <td>${item.description}</td>
             <td>${item.amount}</td>
             <td>${item.category}</td>
+            <td><button onclick="editItem('${item.id}')">Edit</button></td>
             <td><button onclick="deleteItem('${item.id}')">Delete</button></td>
         </tr>
     `).join("");
@@ -153,6 +201,5 @@ const renderTable = () => {
 };
 
 
-
-
+// INITIAL LOAD
 loadFromLocalStorage();
