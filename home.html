@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <script defer src="app.js"></script>
+</head>
+
+<body>
+    <header id="myHeader"></header>
+    <nav id="nav"></nav>
+
+    <form id="myForm" onsubmit="getUserInputs(event)">
+        <label for="category">Category:</label>
+        <select id="category" name="category" required>
+            <option selected disabled value="">select category</option>
+            <option value="food">Food</option>
+            <option value="fuel">Fuel</option>
+            <option value="leisure">Leisure</option>
+            <option value="utilities">Utilities</option>
+            <option value="other">Other</option>
+        </select>
+
+        <label for="amount">Amount:</label>
+        <input type="number" id="amount" name="amount" min="1" max="100000" step="0.01" required>
+
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date" required>
+
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="3"></textarea>
+
+        <button>Save</button>
+    </form>
+    <table>
+        <thead id="table-head">
+
+        </thead>
+        <tbody id="table-body">
+
+        </tbody>
+
+    </table>
+
+</body>
+
+</html>
