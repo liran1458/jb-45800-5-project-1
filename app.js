@@ -347,3 +347,124 @@ if (filterYear) {
 if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener("click", applyFilters);
 }
+
+// ---------------- GRAPHS PAGE ----------------
+
+// DOM elements for graphs page
+const pieCanvas = document.getElementById("pieChart");
+const barCanvas = document.getElementById("barChart");
+
+const downloadPDF = document.getElementById("download-pdf");
+const downloadCSV = document.getElementById("download-csv");
+
+
+// PIE CHART DATA (dynamic categories)
+const getPieData = () => {
+    const categories = [...new Set(data.map(item => item.category))];
+
+    const values = categories.map(cat =>
+        data
+            .filter(item => item.category === cat)
+            .reduce((sum, item) => sum + item.amount, 0)
+    );
+
+    return { categories, values };
+};
+
+
+// BAR CHART DATA (dynamic months)
+const getBarData = () => {
+    const months = [...new Set(data.map(item => item.date.slice(0, 7)))];
+
+    const values = months.map(month =>
+        data
+            .filter(item => item.date.startsWith(month))
+            .reduce((sum, item) => sum + item.amount, 0)
+    );
+
+    return { months, values };
+};
+
+
+// RENDER PIE CHART
+const renderPieChart = () => {
+    if (!pieCanvas) return;
+
+    const { categories, values } = getPieData();
+
+    new Chart(pieCanvas, {
+        type: "pie",
+        data: {
+            labels: categories,
+            datasets: [{
+                data: values
+            }]
+        }
+    });
+};
+
+
+// RENDER BAR CHART
+const renderBarChart = () => {
+    if (!barCanvas) return;
+
+    const { months, values } = getBarData();
+
+    new Chart(barCanvas, {
+        type: "bar",
+        data: {
+            labels: months,
+            datasets: [{
+                label: "Expenses per Month",
+                data: values
+            }]
+        }
+    });
+};
+
+
+// GENERATE PDF
+const generatePDF = () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.text("Expenses Report", 10, 10);
+
+    data.forEach((item, i) => {
+        doc.text(
+            `${item.date} | ${item.category} | ${item.description} | ${item.amount}`,
+            10,
+            20 + i * 10
+        );
+    });
+
+    doc.save("expenses.pdf");
+};
+
+
+// GENERATE CSV
+const generateCSV = () => {
+    const header = "Date,Category,Description,Amount\n";
+
+    const rows = data
+        .map(item => `${item.date},${item.category},${item.description},${item.amount}`)
+        .join("\n");
+
+    const csv = header + rows;
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "expenses.csv";
+    a.click();
+};
+
+
+// EVENT LISTENERS
+if (pieCanvas) renderPieChart();
+if (barCanvas) renderBarChart();
+
+if (downloadPDF) downloadPDF.addEventListener("click", generatePDF);
+if (downloadCSV) downloadCSV.addEventListener("click", generateCSV);
