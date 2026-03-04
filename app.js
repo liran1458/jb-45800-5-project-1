@@ -1,6 +1,5 @@
 const data = [];
 
-// Elements (safe)
 const thead = document.getElementById("table-head");
 const tbody = document.getElementById("table-body");
 
@@ -49,11 +48,6 @@ const loadFromLocalStorage = () => {
     const saved = localStorage.getItem('data');
     if (saved) {
         const parsed = JSON.parse(saved);
-
-        // הוספת ID לפריטים ישנים
-        parsed.forEach(item => {
-            if (!item.id) item.id = generateId();
-        });
 
         data.push(...parsed);
         saveToLocalStorage();
@@ -203,3 +197,153 @@ const renderTable = () => {
 
 // INITIAL LOAD
 loadFromLocalStorage();
+// ---------------- FILTER PAGE ----------------
+
+// DOM elements for filters
+const filterThead = document.getElementById("filter-table-head");
+const filterTbody = document.getElementById("filter-table-body");
+
+const filterYear = document.getElementById("filter-year");
+const filterMonth = document.getElementById("filter-month");
+const filterDay = document.getElementById("filter-day");
+const filterMax = document.getElementById("filter-max");
+const applyFiltersBtn = document.getElementById("apply-filters");
+const filterSummary = document.getElementById("filter-summary");
+
+const getUnique = arr => [...new Set(arr)];
+
+
+// Populate years
+const populateYears = () => {
+    if (!filterYear) return;
+
+    const years = getUnique(
+        data.map(item => item.date.slice(0, 4))
+    );
+
+    filterYear.innerHTML += years
+        .map(y => `<option value="${y}">${y}</option>`)
+        .join("");
+};
+
+
+// Populate months based on selected year
+const populateMonths = () => {
+    if (!filterMonth) return;
+
+    const year = filterYear.value;
+
+    filterMonth.innerHTML = `<option value="">All</option>`;
+    filterDay.innerHTML = `<option value="">All</option>`;
+
+    if (!year) return;
+
+    const months = getUnique(
+        data
+            .filter(item => item.date.startsWith(year))
+            .map(item => item.date.slice(5, 7))
+    );
+
+    filterMonth.innerHTML += months
+        .map(m => `<option value="${m}">${m}</option>`)
+        .join("");
+};
+
+
+// Populate days based on selected year + month
+const populateDays = () => {
+    if (!filterDay) return;
+
+    const year = filterYear.value;
+    const month = filterMonth.value;
+
+    filterDay.innerHTML = `<option value="">All</option>`;
+
+    if (!year || !month) return;
+
+    const days = getUnique(
+        data
+            .filter(item => item.date.startsWith(`${year}-${month}`))
+            .map(item => item.date.slice(8, 10))
+    );
+
+    filterDay.innerHTML += days
+        .map(d => `<option value="${d}">${d}</option>`)
+        .join("");
+};
+
+
+// Apply filters
+const applyFilters = () => {
+    if (!filterThead || !filterTbody) return;
+
+    const year = filterYear.value;
+    const month = filterMonth.value;
+    const day = filterDay.value;
+    const maxAmount = filterMax.value;
+
+    let filtered = [...data];
+
+    if (year) filtered = filtered.filter(item => item.date.startsWith(year));
+    if (month) filtered = filtered.filter(item => item.date.slice(5, 7) === month);
+    if (day) filtered = filtered.filter(item => item.date.slice(8, 10) === day);
+    if (maxAmount) filtered = filtered.filter(item => item.amount <= +maxAmount);
+
+    // Summary above table
+    if (filterSummary) {
+        filterSummary.innerHTML = `
+            Filters applied:
+            Year: ${year || "All"} |
+            Month: ${month || "All"} |
+            Day: ${day || "All"} |
+            Max Amount: ${maxAmount || "No limit"}
+        `;
+    }
+
+    // Render table
+    renderFilterTable(filtered);
+
+    // Reset inputs
+    filterYear.value = "";
+    filterMonth.value = "";
+    filterDay.value = "";
+    filterMax.value = "";
+};
+
+
+// Render table for filters page
+const renderFilterTable = list => {
+    if (!filterThead || !filterTbody) return;
+
+    filterThead.innerHTML = `
+        <tr>
+            <th>Date</th>
+            <th>Description</th>
+            <th>Amount</th>
+            <th>Category</th>
+        </tr>
+    `;
+
+    filterTbody.innerHTML = list
+        .map(item => `
+            <tr>
+                <td>${item.date}</td>
+                <td>${item.description}</td>
+                <td>${item.amount}</td>
+                <td>${item.category}</td>
+            </tr>
+        `)
+        .join("");
+};
+
+
+// Event listeners
+if (filterYear) {
+    populateYears();
+    filterYear.addEventListener("change", populateMonths);
+    filterMonth.addEventListener("change", populateDays);
+}
+
+if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener("click", applyFilters);
+}

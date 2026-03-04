@@ -9,10 +9,40 @@
 </head>
 
 <body>
-    <header id="myHeader">
-    </header>
+    <header id="myHeader"></header>
     <nav id="nav"></nav>
-    
+
+    <h2>Filter Expenses</h2>
+
+    <div id="filters">
+
+        <label for="filter-year">Year:</label>
+        <select id="filter-year">
+            <option value="">All</option>
+        </select>
+
+        <label for="filter-month">Month:</label>
+        <select id="filter-month">
+            <option value="">All</option>
+        </select>
+
+        <label for="filter-day">Day:</label>
+        <select id="filter-day">
+            <option value="">All</option>
+        </select>
+
+        <label for="filter-max">Max Amount:</label>
+        <input type="number" id="filter-max" min="1" max="100000">
+
+        <button id="apply-filters">Apply Filters</button>
+    </div>
+
+    <div id="filter-summary" style="margin: 15px 0; font-weight: bold;"></div>
+
+    <table>
+        <thead id="filter-table-head"></thead>
+        <tbody id="filter-table-body"></tbody>
+    </table>
 
 </body>
 
