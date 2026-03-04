@@ -5,44 +5,65 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Filters</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="app.js"></script>
 </head>
 
-<body>
+<body class="bg-gray-100 min-h-screen">
+
     <header id="myHeader"></header>
+
     <nav id="nav"></nav>
 
-    <h2>Filter Expenses</h2>
+    <main class="max-w-4xl mx-auto mt-8 bg-white shadow p-6 rounded-lg">
 
-    <div id="filters">
+        <h2 class="text-2xl font-semibold mb-6">Filter Expenses</h2>
 
-        <label for="filter-year">Year:</label>
-        <select id="filter-year">
-            <option value="">All</option>
-        </select>
+        <div id="filters" class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <label for="filter-month">Month:</label>
-        <select id="filter-month">
-            <option value="">All</option>
-        </select>
+            <div>
+                <label class="block font-medium">Year:</label>
+                <select id="filter-year" class="w-full border rounded p-2">
+                    <option value="">All</option>
+                </select>
+            </div>
 
-        <label for="filter-day">Day:</label>
-        <select id="filter-day">
-            <option value="">All</option>
-        </select>
+            <div>
+                <label class="block font-medium">Month:</label>
+                <select id="filter-month" class="w-full border rounded p-2">
+                    <option value="">All</option>
+                </select>
+            </div>
 
-        <label for="filter-max">Max Amount:</label>
-        <input type="number" id="filter-max" min="1" max="100000">
+            <div>
+                <label class="block font-medium">Day:</label>
+                <select id="filter-day" class="w-full border rounded p-2">
+                    <option value="">All</option>
+                </select>
+            </div>
 
-        <button id="apply-filters">Apply Filters</button>
-    </div>
+            <div>
+                <label class="block font-medium">Max Amount:</label>
+                <input type="number" id="filter-max" min="1" max="100000"
+                    class="w-full border rounded p-2">
+            </div>
 
-    <div id="filter-summary" style="margin: 15px 0; font-weight: bold;"></div>
+        </div>
 
-    <table>
-        <thead id="filter-table-head"></thead>
-        <tbody id="filter-table-body"></tbody>
-    </table>
+        <button id="apply-filters"
+            class="mt-4 bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition">
+            Apply Filters
+        </button>
+
+        <div id="filter-summary" class="mt-6 font-bold text-gray-700"></div>
+
+        <table class="w-full border-collapse mt-6">
+            <thead id="filter-table-head" class="bg-gray-200"></thead>
+            <tbody id="filter-table-body"></tbody>
+        </table>
+
+    </main>
 
 </body>
 

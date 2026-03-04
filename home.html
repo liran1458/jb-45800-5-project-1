@@ -5,44 +5,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script defer src="app.js"></script>
 </head>
 
-<body>
+<body class="bg-gray-100 min-h-screen">
+
     <header id="myHeader"></header>
+
     <nav id="nav"></nav>
 
-    <form id="myForm" onsubmit="getUserInputs(event)">
-        <label for="category">Category:</label>
-        <select id="category" name="category" required>
-            <option selected disabled value="">select category</option>
-            <option value="food">Food</option>
-            <option value="fuel">Fuel</option>
-            <option value="leisure">Leisure</option>
-            <option value="utilities">Utilities</option>
-            <option value="other">Other</option>
-        </select>
 
-        <label for="amount">Amount:</label>
-        <input type="number" id="amount" name="amount" min="1" max="100000" step="0.01" required>
+    <main class="max-w-4xl mx-auto mt-8 bg-white shadow p-6 rounded-lg">
 
-        <label for="date">Date:</label>
-        <input type="date" id="date" name="date" required>
+        <h2 class="text-2xl font-semibold mb-4">Add New Expense</h2>
 
-        <label for="description">Description:</label>
-        <textarea id="description" name="description" rows="3"></textarea>
+        <form id="myForm" onsubmit="getUserInputs(event)" class="grid grid-cols-1 gap-4">
 
-        <button>Save</button>
-    </form>
-    <table>
-        <thead id="table-head">
+            <div>
+                <label class="block font-medium">Category:</label>
+                <select id="category" name="category" required
+                    class="w-full border rounded p-2">
+                    <option selected disabled value="">Select category</option>
+                    <option value="food">Food</option>
+                    <option value="fuel">Fuel</option>
+                    <option value="leisure">Leisure</option>
+                    <option value="utilities">Utilities</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
 
-        </thead>
-        <tbody id="table-body">
+            <div>
+                <label class="block font-medium">Amount:</label>
+                <input type="number" id="amount" name="amount" min="1" max="100000" step="0.01" required
+                    class="w-full border rounded p-2">
+            </div>
 
-        </tbody>
+            <div>
+                <label class="block font-medium">Date:</label>
+                <input type="date" id="date" name="date" required
+                    class="w-full border rounded p-2">
+            </div>
 
-    </table>
+            <div>
+                <label class="block font-medium">Description:</label>
+                <textarea id="description" name="description" rows="3"
+                    class="w-full border rounded p-2"></textarea>
+            </div>
+
+            <button
+                class="bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">
+                Save
+            </button>
+        </form>
+
+        <h2 class="text-2xl font-semibold mt-10 mb-4">Expenses List</h2>
+
+        <table class="w-full border-collapse">
+            <thead id="table-head" class="bg-gray-200"></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+
+    </main>
 
 </body>
 

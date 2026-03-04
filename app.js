@@ -13,28 +13,28 @@ let editIndex = null;
 // Unique ID generator
 const generateId = () => Date.now().toString() + Math.floor(Math.random() * 10000);
 
-// Header
 const loadHeader = () => `
-    <h1>Expense Manager</h1>
-    <hr>
+    <header class="bg-white text-gray-900 text-3xl font-bold text-center py-6 shadow">
+        Expense Manager
+    </header>
 `;
 
-// Navigation
 const getNavLinks = () => `
-    <a href="home.html">home</a>
-    <a href="filters.html">filters</a>
-    <a href="graphs.html">graphs</a>
-    <a href="about.html">about</a>
+    <nav class="bg-blue-800 text-white py-4 flex justify-center gap-10 text-xl font-medium shadow">
+        <a href="home.html" class="hover:text-blue-300 transition">Home</a>
+        <a href="filters.html" class="hover:text-blue-300 transition">Filters</a>
+        <a href="graphs.html" class="hover:text-blue-300 transition">Graphs</a>
+        <a href="about.html" class="hover:text-blue-300 transition">About</a>
+    </nav>
 `;
 
 // UI INJECTION
 const nav = document.getElementById("nav");
-if (nav) nav.innerHTML = getNavLinks();
+if (nav) nav.outerHTML = getNavLinks();
 
 const header = document.getElementById("myHeader");
-if (header) header.innerHTML = loadHeader();
+if (header) header.outerHTML = loadHeader();
 
-// Validation
 const isDescriptionValid = (category, description) =>
     !(category === "other" && description === "");
 
@@ -48,7 +48,6 @@ const loadFromLocalStorage = () => {
     const saved = localStorage.getItem('data');
     if (saved) {
         const parsed = JSON.parse(saved);
-
         data.push(...parsed);
         saveToLocalStorage();
     }
@@ -63,35 +62,55 @@ const saveToLocalStorage = () =>
 
 // DELETE
 const deleteItem = id => {
-    if (!confirm(`Are you sure you want to delete item ID: ${id}?`)) return;
+    Swal.fire({
+        title: "Delete Item?",
+        text: `Are you sure you want to delete item ID: ${id}?`,
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#dc2626",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Delete"
+    }).then(result => {
+        if (!result.isConfirmed) return;
 
-    const index = data.findIndex(item => item.id === id);
-    if (index === -1) return;
+        const index = data.findIndex(item => item.id === id);
+        if (index === -1) return;
 
-    data.splice(index, 1);
-    saveToLocalStorage();
+        data.splice(index, 1);
+        saveToLocalStorage();
 
-    if (thead && tbody) renderTable();
+        if (thead && tbody) renderTable();
+
+        Swal.fire("Deleted!", "The item has been removed.", "success");
+    });
 };
 
 
 // EDIT
 function editItem(id) {
-    if (!confirm(`Are you sure you want to edit item ID: ${id}?`)) return;
+    Swal.fire({
+        title: "Edit Item?",
+        text: `Are you sure you want to edit item ID: ${id}?`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#facc15",
+        cancelButtonColor: "#6b7280",
+        confirmButtonText: "Edit"
+    }).then(result => {
+        if (!result.isConfirmed) return;
 
-    const index = data.findIndex(item => item.id === id);
-    if (index === -1) return;
+        const index = data.findIndex(item => item.id === id);
+        if (index === -1) return;
 
-    const item = data[index];
+        const item = data[index];
 
-    if (!categoryInput || !descriptionInput || !amountInput || !dateInput) return;
+        categoryInput.value = item.category;
+        descriptionInput.value = item.description;
+        amountInput.value = item.amount;
+        dateInput.value = item.date;
 
-    categoryInput.value = item.category;
-    descriptionInput.value = item.description;
-    amountInput.value = item.amount;
-    dateInput.value = item.date;
-
-    editIndex = index;
+        editIndex = index;
+    });
 }
 
 
@@ -102,66 +121,79 @@ function getUserInputs(event) {
     const form = document.getElementById("myForm");
     if (!form) return;
 
-    if (!categoryInput || !descriptionInput || !amountInput || !dateInput) return;
-
     if (!isDescriptionValid(categoryInput.value, descriptionInput.value.trim())) {
-        alert("Please enter a description for the 'Other' expense.");
+        Swal.fire("Missing Description", "Please enter a description for the 'Other' expense.", "error");
         return;
     }
 
     if (!isDateValid(dateInput.value)) {
-        alert("Do not enter a future date");
+        Swal.fire("Invalid Date", "Do not enter a future date.", "error");
         return;
     }
 
     // UPDATE
     if (editIndex !== null) {
-        if (!confirm("Are you sure you want to update this item?")) return;
+        Swal.fire({
+            title: "Update Item?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#2563eb",
+            cancelButtonColor: "#6b7280",
+            confirmButtonText: "Update"
+        }).then(result => {
+            if (!result.isConfirmed) return;
 
-        data[editIndex] = {
-            ...data[editIndex],
-            date: dateInput.value,
-            description: descriptionInput.value.trim(),
-            amount: +amountInput.value,
-            category: categoryInput.value
-        };
+            data[editIndex] = {
+                ...data[editIndex],
+                date: dateInput.value,
+                description: descriptionInput.value.trim(),
+                amount: +amountInput.value,
+                category: categoryInput.value
+            };
 
-        editIndex = null;
+            editIndex = null;
+            saveToLocalStorage();
+            renderTable();
+            form.reset();
+            categoryInput.focus();
+
+            Swal.fire("Updated!", "The item has been updated.", "success");
+        });
+
+        return;
     }
 
     // ADD
-    else {
-        data.push({
-            id: generateId(),
-            date: dateInput.value,
-            description: descriptionInput.value.trim(),
-            amount: +amountInput.value,
-            category: categoryInput.value
-        });
-    }
+    data.push({
+        id: generateId(),
+        date: dateInput.value,
+        description: descriptionInput.value.trim(),
+        amount: +amountInput.value,
+        category: categoryInput.value
+    });
 
     saveToLocalStorage();
-
-    if (thead && tbody) renderTable();
+    renderTable();
 
     form.reset();
     categoryInput.focus();
+
+    Swal.fire("Saved!", "The expense has been added.", "success");
 }
 
 
 // TABLE RENDER FUNCTIONS
 const renderTableHeader = () => {
     if (!thead) return;
-    if (thead.innerHTML.trim() !== "") return;
 
     thead.innerHTML = `
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Category</th>
-            <th>Edit</th>
-            <th>Delete</th>
+        <tr class="bg-gray-200 text-gray-900">
+            <th class="border px-4 py-2">Date</th>
+            <th class="border px-4 py-2">Description</th>
+            <th class="border px-4 py-2">Amount</th>
+            <th class="border px-4 py-2">Category</th>
+            <th class="border px-4 py-2"></th>
+            <th class="border px-4 py-2"></th>
         </tr>
     `;
 };
@@ -170,13 +202,25 @@ const renderTableRows = () => {
     if (!tbody) return;
 
     tbody.innerHTML = data.map(item => `
-        <tr>
-            <td>${item.date}</td>
-            <td>${item.description}</td>
-            <td>${item.amount}</td>
-            <td>${item.category}</td>
-            <td><button onclick="editItem('${item.id}')">Edit</button></td>
-            <td><button onclick="deleteItem('${item.id}')">Delete</button></td>
+        <tr class="border-b hover:bg-gray-50">
+            <td class="border px-4 py-2">${item.date}</td>
+            <td class="border px-4 py-2">${item.description}</td>
+            <td class="border px-4 py-2">${item.amount}</td>
+            <td class="border px-4 py-2">${item.category}</td>
+
+            <td class="border px-4 py-2">
+                <button onclick="editItem('${item.id}')"
+                    class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition">
+                    Edit
+                </button>
+            </td>
+
+            <td class="border px-4 py-2">
+                <button onclick="deleteItem('${item.id}')"
+                    class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition">
+                    Delete
+                </button>
+            </td>
         </tr>
     `).join("");
 };
@@ -197,9 +241,10 @@ const renderTable = () => {
 
 // INITIAL LOAD
 loadFromLocalStorage();
+
 // ---------------- FILTER PAGE ----------------
 
-// DOM elements for filters
+// elements for filters
 const filterThead = document.getElementById("filter-table-head");
 const filterTbody = document.getElementById("filter-table-body");
 
@@ -292,11 +337,13 @@ const applyFilters = () => {
     // Summary above table
     if (filterSummary) {
         filterSummary.innerHTML = `
-            Filters applied:
-            Year: ${year || "All"} |
-            Month: ${month || "All"} |
-            Day: ${day || "All"} |
-            Max Amount: ${maxAmount || "No limit"}
+            <div class="bg-gray-100 p-3 rounded border text-gray-700">
+                <span class="font-semibold">Filters applied:</span><br>
+                Year: ${year || "All"} |
+                Month: ${month || "All"} |
+                Day: ${day || "All"} |
+                Max Amount: ${maxAmount || "No limit"}
+            </div>
         `;
     }
 
@@ -316,21 +363,21 @@ const renderFilterTable = list => {
     if (!filterThead || !filterTbody) return;
 
     filterThead.innerHTML = `
-        <tr>
-            <th>Date</th>
-            <th>Description</th>
-            <th>Amount</th>
-            <th>Category</th>
+        <tr class="bg-gray-200 text-gray-900">
+            <th class="border px-4 py-2">Date</th>
+            <th class="border px-4 py-2">Description</th>
+            <th class="border px-4 py-2">Amount</th>
+            <th class="border px-4 py-2">Category</th>
         </tr>
     `;
 
     filterTbody.innerHTML = list
         .map(item => `
-            <tr>
-                <td>${item.date}</td>
-                <td>${item.description}</td>
-                <td>${item.amount}</td>
-                <td>${item.category}</td>
+            <tr class="border-b hover:bg-gray-50">
+                <td class="border px-4 py-2">${item.date}</td>
+                <td class="border px-4 py-2">${item.description}</td>
+                <td class="border px-4 py-2">${item.amount}</td>
+                <td class="border px-4 py-2">${item.category}</td>
             </tr>
         `)
         .join("");
@@ -386,7 +433,7 @@ const getBarData = () => {
 };
 
 
-// RENDER PIE CHART
+// RENDER PIE CHART 
 const renderPieChart = () => {
     if (!pieCanvas) return;
 
@@ -404,7 +451,7 @@ const renderPieChart = () => {
 };
 
 
-// RENDER BAR CHART
+// RENDER BAR CHART 
 const renderBarChart = () => {
     if (!barCanvas) return;
 
@@ -428,17 +475,22 @@ const generatePDF = () => {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
+    doc.setFontSize(18);
     doc.text("Expenses Report", 10, 10);
+
+    doc.setFontSize(12);
 
     data.forEach((item, i) => {
         doc.text(
             `${item.date} | ${item.category} | ${item.description} | ${item.amount}`,
             10,
-            20 + i * 10
+            20 + i * 8
         );
     });
 
     doc.save("expenses.pdf");
+
+    Swal.fire("PDF Ready", "Your PDF report has been downloaded.", "success");
 };
 
 
@@ -459,6 +511,8 @@ const generateCSV = () => {
     a.href = url;
     a.download = "expenses.csv";
     a.click();
+
+    Swal.fire("CSV Ready", "Your CSV file has been downloaded.", "success");
 };
 
 
