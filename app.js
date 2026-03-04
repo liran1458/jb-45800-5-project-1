@@ -230,7 +230,13 @@ const renderTable = () => {
 
     if (data.length === 0) {
         thead.innerHTML = "";
-        tbody.innerHTML = "";
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center text-gray-400 py-6">
+                    No expenses yet. Add your first one!
+                </td>
+            </tr>
+        `;
         return;
     }
 
