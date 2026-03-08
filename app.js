@@ -10,6 +10,9 @@ const dateInput = document.getElementById('date');
 
 let editIndex = null;
 
+const formatDescription = desc =>
+    desc && desc.trim() !== "" ? desc.trim() : "-";
+
 // Unique ID generator
 const generateId = () => Date.now().toString() + Math.floor(Math.random() * 10000);
 
@@ -188,10 +191,10 @@ const renderTableHeader = () => {
 
     thead.innerHTML = `
         <tr class="bg-gray-200 text-gray-900">
+            <th class="border px-4 py-2">Category</th>
+            <th class="border px-4 py-2">Amount</th>
             <th class="border px-4 py-2">Date</th>
             <th class="border px-4 py-2">Description</th>
-            <th class="border px-4 py-2">Amount</th>
-            <th class="border px-4 py-2">Category</th>
             <th class="border px-4 py-2"></th>
             <th class="border px-4 py-2"></th>
         </tr>
@@ -202,23 +205,18 @@ const renderTableRows = () => {
     if (!tbody) return;
 
     tbody.innerHTML = data.map(item => {
-
-        const isEmpty = item.description.trim() === "";
-        const desc = isEmpty ? "-" : item.description;
-        const descClass = isEmpty
-            ? "bg-gray-100 text-gray-600 text-center"
-            : "text-left";
+        const desc = formatDescription(item.description);
+        const isEmpty = desc === "-";
 
         return `
         <tr class="border-b hover:bg-gray-50">
+            <td class="border px-4 py-2">${item.category}</td>
+            <td class="border px-4 py-2">$ ${item.amount}</td>
             <td class="border px-4 py-2">${item.date}</td>
 
-            <td class="border px-4 py-2 ${descClass}">
+            <td class="border px-4 py-2 ${isEmpty ? "bg-gray-100 text-center" : "text-left"}">
                 ${desc}
             </td>
-
-            <td class="border px-4 py-2">$ ${item.amount}</td>
-            <td class="border px-4 py-2">${item.category}</td>
 
             <td class="border px-4 py-2">
                 <button onclick="editItem('${item.id}')"
@@ -276,7 +274,6 @@ const filterSummary = document.getElementById("filter-summary");
 
 const getUnique = arr => [...new Set(arr)];
 
-
 // Populate years
 const populateYears = () => {
     if (!filterYear) return;
@@ -289,7 +286,6 @@ const populateYears = () => {
         .map(y => `<option value="${y}">${y}</option>`)
         .join("");
 };
-
 
 // Populate months based on selected year
 const populateMonths = () => {
@@ -383,22 +379,30 @@ const renderFilterTable = list => {
 
     filterThead.innerHTML = `
         <tr class="bg-gray-200 text-gray-900">
+            <th class="border px-4 py-2">Category</th>
+            <th class="border px-4 py-2">Amount</th>
             <th class="border px-4 py-2">Date</th>
             <th class="border px-4 py-2">Description</th>
-            <th class="border px-4 py-2">Amount</th>
-            <th class="border px-4 py-2">Category</th>
         </tr>
     `;
 
     filterTbody.innerHTML = list
-        .map(item => `
+        .map(item => {
+            const desc = formatDescription(item.description);
+            const isEmpty = desc === "-";
+
+            return `
             <tr class="border-b hover:bg-gray-50">
-                <td class="border px-4 py-2">${item.date}</td>
-                <td class="border px-4 py-2">${item.description}</td>
-                <td class="border px-4 py-2">${item.amount}</td>
                 <td class="border px-4 py-2">${item.category}</td>
+                <td class="border px-4 py-2">$ ${item.amount}</td>
+                <td class="border px-4 py-2">${item.date}</td>
+
+                <td class="border px-4 py-2 ${isEmpty ? "bg-gray-100 text-center" : "text-left"}">
+                    ${desc}
+                </td>
             </tr>
-        `)
+            `;
+        })
         .join("");
 };
 
@@ -413,7 +417,6 @@ if (filterYear) {
 if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener("click", applyFilters);
 }
-
 // ---------------- GRAPHS PAGE ----------------
 
 // DOM elements for graphs page
