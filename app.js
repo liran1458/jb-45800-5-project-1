@@ -201,11 +201,23 @@ const renderTableHeader = () => {
 const renderTableRows = () => {
     if (!tbody) return;
 
-    tbody.innerHTML = data.map(item => `
+    tbody.innerHTML = data.map(item => {
+
+        const isEmpty = item.description.trim() === "";
+        const desc = isEmpty ? "-" : item.description;
+        const descClass = isEmpty
+            ? "bg-gray-100 text-gray-600 text-center"
+            : "text-left";
+
+        return `
         <tr class="border-b hover:bg-gray-50">
             <td class="border px-4 py-2">${item.date}</td>
-            <td class="border px-4 py-2">${item.description}</td>
-            <td class="border px-4 py-2">${item.amount}</td>
+
+            <td class="border px-4 py-2 ${descClass}">
+                ${desc}
+            </td>
+
+            <td class="border px-4 py-2">$ ${item.amount}</td>
             <td class="border px-4 py-2">${item.category}</td>
 
             <td class="border px-4 py-2">
@@ -222,7 +234,8 @@ const renderTableRows = () => {
                 </button>
             </td>
         </tr>
-    `).join("");
+        `;
+    }).join("");
 };
 
 const renderTable = () => {
